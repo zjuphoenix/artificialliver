@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.artificialliver.mapper.LiquidDataMapper">
+
+<resultMap id="liquid_data" type="List">
+		<collection property="liquid" ofType="com.artificialliver.model.LiquidData">
+			<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
+			<result column="blood_pump_t" jdbcType="VARCHAR" property="blood_pump_t" />
+			<result column="tripe_pump_t" jdbcType="VARCHAR" property="tripe_pump_t" />
+			<result column="filtration_pump_t" jdbcType="VARCHAR" property="filtration_pump_t" />
+		</collection>
+	</resultMap>
+	<select id="getAll" parameterType="java.lang.String"
+		resultMap="liquid_data">
+		SELECT time_stamp,
+		blood_pump_t,
+		tripe_pump_t,
+		filtration_pump_t FROM pump_speed_data where surgery_no=#{value} order by time_stamp
+	</select>
+
+</mapper>

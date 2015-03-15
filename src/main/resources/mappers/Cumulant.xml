@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.artificialliver.mapper.CumulantMapper">
+
+	<select id="getOne" parameterType="java.lang.String"
+		resultType="com.artificialliver.model.Cumulant">
+		SELECT cumulative_time,blood_pump_t ,separation_pump_t ,dialysis_pump_t
+		,tripe_pump_t,filtration_pump_t ,circulating_pump_t, heparin_pump_t
+		FROM pump_speed_data where surgery_no=#{value} order by time_stamp
+		desc limit 1
+	</select>
+
+</mapper>

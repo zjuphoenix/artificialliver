@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.artificialliver.mapper.GuardianDataMapper">
+
+	<!-- <resultMap id="guardian_data" type="List"> <collection property="guardian" 
+		ofType="com.artificialliver.model.GuardianData"> <result column="surgery_no" 
+		jdbcType="VARCHAR" property="surgery_no" /> <result column="time_stamp" jdbcType="VARCHAR" 
+		property="time_stamp" /> <result column="heart_rate" jdbcType="VARCHAR" property="heart_rate" 
+		/> <result column="systolic_pressure" jdbcType="VARCHAR" property="systolic_pressure" 
+		/> <result column="diastolic_pressure" jdbcType="VARCHAR" property="diastolic_pressure" 
+		/> <result column="blood_oxygen" jdbcType="VARCHAR" property="blood_oxygen" 
+		/> <result column="ecg_features" jdbcType="VARCHAR" property="ecg_features" 
+		/> </collection> </resultMap> -->
+	<resultMap id="guardian_data" type="com.artificialliver.model.GuardianData">
+		<result column="surgery_no" jdbcType="VARCHAR" property="surgery_no" />
+		<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
+		<result column="heart_rate" jdbcType="VARCHAR" property="heart_rate" />
+		<result column="systolic_pressure" jdbcType="VARCHAR" property="systolic_pressure" />
+		<result column="diastolic_pressure" jdbcType="VARCHAR" property="diastolic_pressure" />
+		<result column="blood_oxygen" jdbcType="VARCHAR" property="blood_oxygen" />
+		<result column="ecg_features" jdbcType="VARCHAR" property="ecg_features" />
+	</resultMap>
+	<select id="getAfter" parameterType="com.artificialliver.model.SyncObject"
+		resultMap="guardian_data">
+		SELECT * FROM guardian_data where surgery_no=#{surgery_no}
+		and
+		time_stamp>#{time_stamp} order by time_stamp
+	</select>
+	<delete id="deleteBefore" parameterType="java.lang.String">
+		DELETE FROM
+		guardian_data
+		WHERE time_stamp=#{value};
+	</delete>
+</mapper>

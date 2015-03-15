@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.artificialliver.mapper.HeartRateDataMapper">
+
+	<resultMap id="heartrate_data" type="List">
+		<collection property="heartrate"
+			ofType="com.artificialliver.model.HeartRateData">
+			<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
+			<result column="heart_rate" jdbcType="VARCHAR" property="heart_rate" />
+		</collection>
+	</resultMap>
+	<select id="getAll" parameterType="java.lang.String" resultMap="heartrate_data">
+		SELECT time_stamp,
+		heart_rate FROM guardian_data where
+		surgery_no=#{value} order by time_stamp
+	</select>
+
+</mapper>
