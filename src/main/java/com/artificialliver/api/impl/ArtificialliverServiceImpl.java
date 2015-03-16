@@ -1,5 +1,7 @@
 package com.artificialliver.api.impl;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -62,6 +64,13 @@ public class ArtificialliverServiceImpl implements ArtificialliverService {
 	public InputStream getReportForm(String operationInfo) {
 		// TODO 自动生成的方法存根
 		try {
+			return new FileInputStream("C://Users/wuhaitao/Desktop/武海涛-浙江大学.pdf");
+		} catch (FileNotFoundException e) {
+			// TODO 自动生成的 catch 块
+			e.printStackTrace();
+		}
+		return null;
+		/*try {
 			return reporterService.getReporterPdf(operationInfo);
 		} catch (DocumentException e) {
 			// TODO 自动生成的 catch 块
@@ -73,7 +82,7 @@ public class ArtificialliverServiceImpl implements ArtificialliverService {
 			// TODO 自动生成的 catch 块
 			e.printStackTrace();
 		}
-		return null;
+		return null;*/
 
 	}
 

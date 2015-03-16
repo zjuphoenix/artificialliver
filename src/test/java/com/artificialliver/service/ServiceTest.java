@@ -1,5 +1,10 @@
 package com.artificialliver.service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.NameValuePair;
@@ -43,7 +48,7 @@ public class ServiceTest {
 			postMethod.releaseConnection();
 		}
 	}
-	
+
 	@Test
 	public void sync() {
 		String url = URL + "sync";
@@ -51,7 +56,8 @@ public class ServiceTest {
 		PostMethod postMethod = new PostMethod(url);
 		postMethod.setRequestHeader("Content-Type",
 				"application/x-www-form-urlencoded;charset=UTF-8");
-		NameValuePair[] param = { new NameValuePair("surgery_no", "Hades"), new NameValuePair("time_stamp", "Hades") };
+		NameValuePair[] param = { new NameValuePair("surgery_no", "Hades"),
+				new NameValuePair("time_stamp", "Hades") };
 		postMethod.setRequestBody(param);
 		try {
 			int statCode = client.executeMethod(postMethod);
@@ -68,7 +74,7 @@ public class ServiceTest {
 			postMethod.releaseConnection();
 		}
 	}
-	
+
 	@Test
 	public void report() {
 		String url = URL + "report";
@@ -77,15 +83,28 @@ public class ServiceTest {
 		postMethod.setRequestHeader("Content-Type",
 				"application/x-www-form-urlencoded;charset=UTF-8");
 		Gson gson = new Gson();
-		String json = gson.toJson(new OperationInfo("张三", "男", "20",
-				"治疗方法一", "王医生", "1", "", "2015-03-08"));
-		NameValuePair[] param = { new NameValuePair("operationInfo", json)};
+		String json = gson.toJson(new OperationInfo("张三", "男", "20", "治疗方法一",
+				"王医生", "1", "", "2015-03-08"));
+		NameValuePair[] param = { new NameValuePair("operationInfo", json) };
 		postMethod.setRequestBody(param);
 		try {
 			int statCode = client.executeMethod(postMethod);
 			if (statCode == HttpStatus.SC_OK) {
-				String response = postMethod.getResponseBodyAsString();
-				System.out.println(response);
+				InputStream response = postMethod.getResponseBodyAsStream();
+				try {
+					File file=new File("C://Users/wuhaitao/Desktop/report.pdf");
+					file.createNewFile();
+					OutputStream os = new FileOutputStream(file);
+					int bytesRead = 0;
+					byte[] buffer = new byte[8192];
+					while ((bytesRead = response.read(buffer, 0, 8192)) != -1) {
+						os.write(buffer, 0, bytesRead);
+					}
+					os.close();
+					response.close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
 			} else {
 				System.out.println(statCode);
 			}
