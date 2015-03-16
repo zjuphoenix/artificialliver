@@ -13,10 +13,8 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-
 import javax.annotation.Resource;
 import javax.imageio.ImageIO;
-
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -32,8 +30,6 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
-
 import com.artificialliver.model.BloodPressureData;
 import com.artificialliver.model.Cumulant;
 import com.artificialliver.model.HeartRateData;
@@ -46,7 +42,6 @@ import com.artificialliver.service.HeartRateService;
 import com.artificialliver.service.LiquidService;
 import com.artificialliver.service.PressureService;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import com.itextpdf.text.Chapter;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -182,6 +177,7 @@ public class Reporter extends Document {
 		return new FileInputStream("./"+surgeryNo+operationInfo.patientName+operationInfo.time+".pdf");
 	}
 
+	@SuppressWarnings("unused")
 	public static JFreeChart createChart(TimeSeriesCollection lineDataset,
 			String title, String ylabel, String xlabel) {
 		JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(title, // 标题
@@ -238,6 +234,7 @@ public class Reporter extends Document {
 		return jfreechart;
 	}
 
+	@SuppressWarnings("deprecation")
 	public void setLiquidParagraph() throws ParseException, IOException,
 			DocumentException {
 		List<LiquidData> liquidDatas = liquidService.getLiquidDatas(surgeryNo);
@@ -272,6 +269,7 @@ public class Reporter extends Document {
 				baseFontChinese));
 	}
 
+	@SuppressWarnings("deprecation")
 	public void setPressureParagraph() throws ParseException, IOException,
 			DocumentException {
 		List<PressureData> PressureDatas = pressureService.getPressureDatas(surgeryNo);
@@ -317,6 +315,7 @@ public class Reporter extends Document {
 				baseFontChinese));
 	}
 
+	@SuppressWarnings("deprecation")
 	public void setHeartRateParagraph() throws ParseException, IOException,
 			DocumentException {
 		List<HeartRateData> heartRateDatas = heartRateService
@@ -343,6 +342,7 @@ public class Reporter extends Document {
 				baseFontChinese));
 	}
 
+	@SuppressWarnings("deprecation")
 	public void etBloodPressureParagraph() throws ParseException, IOException,
 			DocumentException {
 		List<BloodPressureData> bloodPressureDatas = bloodPressureService
@@ -379,6 +379,7 @@ public class Reporter extends Document {
 				baseFontChinese));
 	}
 
+	@SuppressWarnings("unused")
 	public static void main(String[] args) throws DocumentException,
 			IOException, ParseException {
 		//Reporter report = new Reporter(new OperationInfo("张三", "男", "20","治疗方法一", "王医生", "1", "", "2015-03-08"));

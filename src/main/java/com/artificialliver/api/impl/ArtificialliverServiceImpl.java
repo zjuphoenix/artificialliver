@@ -2,27 +2,20 @@ package com.artificialliver.api.impl;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
-import java.text.ParseException;
 import java.util.List;
-
 import javax.annotation.Resource;
-
 import com.artificialliver.api.ArtificialliverService;
 import com.artificialliver.model.GuardianData;
-import com.artificialliver.model.OperationInfo;
 import com.artificialliver.model.PressureData;
 import com.artificialliver.model.PumpSpeedData;
 import com.artificialliver.model.SyncObject;
 import com.artificialliver.model.SyncResult;
-import com.artificialliver.report.Reporter;
 import com.artificialliver.service.GuardianService;
 import com.artificialliver.service.PressureService;
 import com.artificialliver.service.PumpSpeedService;
 import com.artificialliver.service.ReporterService;
 import com.google.gson.Gson;
-import com.itextpdf.text.DocumentException;
 
 public class ArtificialliverServiceImpl implements ArtificialliverService {
 
