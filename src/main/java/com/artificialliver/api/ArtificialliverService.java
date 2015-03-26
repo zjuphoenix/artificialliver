@@ -15,7 +15,7 @@ public interface ArtificialliverService {
 	@POST
 	@Path("/report")
 	@Consumes("application/x-www-form-urlencoded")
-	public InputStream getReportForm(@FormParam("operationInfo") String operationInfo);
+	public InputStream getReportForm(@FormParam("operationInfo") String operationInfo,@FormParam("schemes") String schemestr);
 
 	@POST
 	@Path("/sync")

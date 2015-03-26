@@ -8,15 +8,15 @@ public class OperationInfo {
 	public String doctor;
 	public String time;
 	public String operationNo;
-	public String extraInfo;
-	public OperationInfo(String patientName,String gender,String age, String treatMethod,String doctor,String operationNo,String extraInfo,String time) {
+	public String operationTime;
+	public OperationInfo(String patientName,String gender,String age, String treatMethod,String doctor,String operationNo,String time,String operationTime) {
 		this.patientName=patientName;
 		this.gender=gender;
 		this.age=age;
 		this.treatMethod=treatMethod;
 		this.doctor=doctor;
 		this.operationNo=operationNo;
-		this.extraInfo=extraInfo;
+		this.operationTime=operationTime;
 		this.time=time;
 	}
 }

@@ -3,12 +3,9 @@
 
 <mapper namespace="com.artificialliver.mapper.HeartRateDataMapper">
 
-	<resultMap id="heartrate_data" type="List">
-		<collection property="heartrate"
-			ofType="com.artificialliver.model.HeartRateData">
-			<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
-			<result column="heart_rate" jdbcType="VARCHAR" property="heart_rate" />
-		</collection>
+	<resultMap id="heartrate_data" type="com.artificialliver.model.HeartRateData">
+		<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
+		<result column="heart_rate" jdbcType="VARCHAR" property="heart_rate" />
 	</resultMap>
 	<select id="getAll" parameterType="java.lang.String" resultMap="heartrate_data">
 		SELECT time_stamp,

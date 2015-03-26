@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
@@ -13,6 +15,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.artificialliver.model.OperationInfo;
+import com.artificialliver.model.Scheme;
 import com.google.gson.Gson;
 
 public class ServiceTest {
@@ -56,8 +59,8 @@ public class ServiceTest {
 		PostMethod postMethod = new PostMethod(url);
 		postMethod.setRequestHeader("Content-Type",
 				"application/x-www-form-urlencoded;charset=UTF-8");
-		NameValuePair[] param = { new NameValuePair("surgery_no", "Hades"),
-				new NameValuePair("time_stamp", "Hades") };
+		NameValuePair[] param = { new NameValuePair("surgery_no", "123"),
+				new NameValuePair("time_stamp", "2015-03-07") };
 		postMethod.setRequestBody(param);
 		try {
 			int statCode = client.executeMethod(postMethod);
@@ -84,8 +87,13 @@ public class ServiceTest {
 				"application/x-www-form-urlencoded;charset=UTF-8");
 		Gson gson = new Gson();
 		String json = gson.toJson(new OperationInfo("张三", "男", "20", "治疗方法一",
-				"王医生", "1", "", "2015-03-08"));
-		NameValuePair[] param = { new NameValuePair("operationInfo", json) };
+				"王医生", "123", "", "2015-03-07 00:00:00"));
+		List<Scheme> schemes = new ArrayList<Scheme>();
+		schemes.add(new Scheme("阶段1", "2015-03-04 11:39:20"));
+		schemes.add(new Scheme("阶段2", "2015-03-04 11:39:30"));
+		schemes.add(new Scheme("stop ", "2015-03-04 11:39:38"));
+		String jsonSchemes = gson.toJson(schemes);
+		NameValuePair[] param = { new NameValuePair("operationInfo", json), new NameValuePair("schemes", jsonSchemes)};
 		postMethod.setRequestBody(param);
 		try {
 			int statCode = client.executeMethod(postMethod);

@@ -3,23 +3,28 @@
 
 <mapper namespace="com.artificialliver.mapper.PressureDataMapper">
 
-	<resultMap id="pressure_data" type="List">
-		<collection property="pressure"
-			ofType="com.artificialliver.model.PressureData">
-			<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
-			<result column="in_blood_pressure" jdbcType="VARCHAR" property="in_blood_pressure" />
-			<result column="plasma_inlet_pressure" jdbcType="VARCHAR" property="plasma_inlet_pressure" />
-			<result column="arterial_pressure" jdbcType="VARCHAR"
-				property="arterial_pressure" />
-			<result column="venous_pressure" jdbcType="VARCHAR"
-				property="venous_pressure" />
-			<result column="plasma_pressure" jdbcType="VARCHAR" property="plasma_pressure" />
-			<result column="transmembrane_pressure" jdbcType="VARCHAR" property="transmembrane_pressure" />
-		</collection>
+	<!-- <resultMap id="pressure_data" type="List"> <collection property="pressure" 
+		ofType="com.artificialliver.model.PressureData"> <result column="time_stamp" 
+		jdbcType="VARCHAR" property="time_stamp" /> <result column="in_blood_pressure" 
+		jdbcType="VARCHAR" property="in_blood_pressure" /> <result column="plasma_inlet_pressure" 
+		jdbcType="VARCHAR" property="plasma_inlet_pressure" /> <result column="arterial_pressure" 
+		jdbcType="VARCHAR" property="arterial_pressure" /> <result column="venous_pressure" 
+		jdbcType="VARCHAR" property="venous_pressure" /> <result column="plasma_pressure" 
+		jdbcType="VARCHAR" property="plasma_pressure" /> <result column="transmembrane_pressure" 
+		jdbcType="VARCHAR" property="transmembrane_pressure" /> </collection> </resultMap> -->
+	<resultMap id="pressure_data" type="com.artificialliver.model.PressureData">
+		<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
+		<result column="in_blood_pressure" jdbcType="VARCHAR" property="in_blood_pressure" />
+		<result column="plasma_inlet_pressure" jdbcType="VARCHAR"
+			property="plasma_inlet_pressure" />
+		<result column="arterial_pressure" jdbcType="VARCHAR" property="arterial_pressure" />
+		<result column="venous_pressure" jdbcType="VARCHAR" property="venous_pressure" />
+		<result column="plasma_pressure" jdbcType="VARCHAR" property="plasma_pressure" />
+		<result column="transmembrane_pressure" jdbcType="VARCHAR"
+			property="transmembrane_pressure" />
 	</resultMap>
 
-	<select id="getAll" parameterType="java.lang.String"
-		resultMap="pressure_data">
+	<select id="getAll" parameterType="java.lang.String" resultMap="pressure_data">
 		SELECT time_stamp,
 		in_blood_pressure,
 		plasma_inlet_pressure,

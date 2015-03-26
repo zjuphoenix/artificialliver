@@ -23,7 +23,7 @@ public class ReporterService {
 
 
 
-	public InputStream getReporterPdf(String operationInfoStr) throws DocumentException, ParseException, IOException{
-		return reporter.getReporterPdf(operationInfoStr);
+	public InputStream getReporterPdf(String operationInfoStr, String schemestr) throws DocumentException, ParseException, IOException{
+		return reporter.getReporterPdf(operationInfoStr, schemestr);
 	}
 }

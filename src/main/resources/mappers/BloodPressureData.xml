@@ -3,14 +3,10 @@
 
 <mapper namespace="com.artificialliver.mapper.BloodPressureDataMapper">
 	<resultMap id="bloodpressure" type="com.artificialliver.model.BloodPressureData">
-		<collection property="pressure"
-			ofType="com.artificialliver.model.PressureData">
-			<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
-			<result column="systolic_pressure" jdbcType="VARCHAR"
-				property="systolic_pressure" />
-			<result column="diastolic_pressure" jdbcType="VARCHAR"
-				property="diastolic_pressure" />
-		</collection>
+		<result column="time_stamp" jdbcType="VARCHAR" property="time_stamp" />
+		<result column="systolic_pressure" jdbcType="VARCHAR" property="systolic_pressure" />
+		<result column="diastolic_pressure" jdbcType="VARCHAR"
+			property="diastolic_pressure" />
 	</resultMap>
 
 	<select id="getAll" parameterType="java.lang.String" resultMap="bloodpressure">

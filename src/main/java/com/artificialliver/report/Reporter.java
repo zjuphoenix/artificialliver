@@ -1,5 +1,6 @@
 package com.artificialliver.report;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.image.BufferedImage;
@@ -11,6 +12,7 @@ import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Resource;
@@ -21,12 +23,21 @@ import org.jfree.chart.axis.DateAxis;
 import org.jfree.chart.labels.ItemLabelAnchor;
 import org.jfree.chart.labels.ItemLabelPosition;
 import org.jfree.chart.labels.StandardXYItemLabelGenerator;
+import org.jfree.chart.plot.IntervalMarker;
+import org.jfree.chart.plot.Marker;
+import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYDifferenceRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.chart.title.LegendTitle;
 import org.jfree.data.time.Second;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
+import org.jfree.ui.Layer;
+import org.jfree.ui.LengthAdjustmentType;
+import org.jfree.ui.RectangleAnchor;
+import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 import org.springframework.stereotype.Component;
@@ -36,12 +47,14 @@ import com.artificialliver.model.HeartRateData;
 import com.artificialliver.model.LiquidData;
 import com.artificialliver.model.OperationInfo;
 import com.artificialliver.model.PressureData;
+import com.artificialliver.model.Scheme;
 import com.artificialliver.service.BloodPressureService;
 import com.artificialliver.service.CumulantService;
 import com.artificialliver.service.HeartRateService;
 import com.artificialliver.service.LiquidService;
 import com.artificialliver.service.PressureService;
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.itextpdf.text.Chapter;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
@@ -57,6 +70,11 @@ import com.itextpdf.text.pdf.PdfWriter;
 
 @Component
 public class Reporter extends Document {
+	public static final double HIGHBLOODTHRESHHODL = 2;
+	public static final double LOWBLOODTHRESHHOLD = 1;
+	public static final double HIGHRATETHRESHHODL = 2;
+	public static final double LOWRATETHRESHHODL = 1;
+	public static final DateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	BaseFont bfChinese;
 	com.itextpdf.text.Font titleFontChinese;
 	com.itextpdf.text.Font baseFontChinese;
@@ -65,7 +83,8 @@ public class Reporter extends Document {
 	String surgeryNo;
 	Chapter chapter;
 	OperationInfo operationInfo;
-	
+	List<Scheme> schemes;
+
 	@Resource
 	private CumulantService cumulantService;
 	@Resource
@@ -77,16 +96,23 @@ public class Reporter extends Document {
 	@Resource
 	private PressureService pressureService;
 
-	
-	public Reporter(){
+	public static void setAntiAlias(JFreeChart chart) {
+		chart.setTextAntiAlias(false);
+
+	}
+	public Reporter() {
 		super(PageSize.A4, 50, 50, 50, 50);
 	}
-	
 
-	public void initial(String operationInfoStr) throws DocumentException, IOException{
+	public void initial(String operationInfoStr, String schemestr) throws DocumentException,
+			IOException {
 		Gson gson = new Gson();
-		OperationInfo operation = gson.fromJson(operationInfoStr, OperationInfo.class);
+		OperationInfo operation = gson.fromJson(operationInfoStr,
+				OperationInfo.class);
+		List<Scheme> schemes = gson.fromJson(schemestr, new TypeToken<List<Scheme>>() {  
+        }.getType());
 		this.operationInfo = operation;
+		this.schemes = schemes;
 		this.surgeryNo = operation.operationNo;
 		bfChinese = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H",
 				BaseFont.NOT_EMBEDDED);
@@ -99,9 +125,11 @@ public class Reporter extends Document {
 				com.itextpdf.text.Font.BOLD, new CMYKColor(0, 255, 255, 255));
 		baseTableFontChinese = new com.itextpdf.text.Font(bfChinese, 8,
 				com.itextpdf.text.Font.NORMAL, new CMYKColor(0, 255, 255, 255));
-		PdfWriter.getInstance(this, new FileOutputStream("./"+surgeryNo+operation.patientName+operation.time+".pdf"));
+		PdfWriter.getInstance(this, new FileOutputStream("./" + surgeryNo
+				+ operation.patientName + operation.time + ".pdf"));
 		this.open();
 	}
+
 	/**
 	 * 增加表头
 	 */
@@ -118,7 +146,7 @@ public class Reporter extends Document {
 						operationInfo.patientName, operationInfo.gender,
 						operationInfo.age, operationInfo.treatMethod,
 						operationInfo.time, operationInfo.operationNo,
-						operationInfo.doctor, operationInfo.extraInfo),
+						operationInfo.doctor, operationInfo.operationTime),
 				baseFontChinese);
 		chapter.add(baseInformation);
 	}
@@ -133,13 +161,12 @@ public class Reporter extends Document {
 		t.setLockedWidth(true);
 		t.getDefaultCell().setBorder(0);
 
-		String[] strings = new String[] { "治疗时间(累计)", cumulant.cumulative_time,
-				"Min", "血液循环量(累计)", cumulant.blood_pump_t, "L", "分离泵(累计)",
-				cumulant.separation_pump_t, "L", "透析液泵(累计)",
-				cumulant.dialysis_pump_t, "L", "补液泵(累计)",
-				cumulant.tripe_pump_t, "L", "滤过泵(累计)",
-				cumulant.filtration_pump_t, "L", "循环泵(累计)",
-				cumulant.circulating_pump_t, "L", "肝素泵(累计)",
+		String[] strings = new String[] { "实际治疗时间", cumulant.cumulative_time,
+				"Min", "血液循环量", cumulant.blood_pump_t, "L", "分离量",
+				cumulant.separation_pump_t, "L", "透析液量",
+				cumulant.dialysis_pump_t, "L", "补液量", cumulant.tripe_pump_t,
+				"L", "滤过量", cumulant.filtration_pump_t, "L", "循环量",
+				cumulant.circulating_pump_t, "L", "肝素量",
 				cumulant.heparin_pump_t, "ml" };
 		for (String string : strings) {
 			PdfPCell c = new PdfPCell(new Phrase(string, baseTableFontChinese));
@@ -148,7 +175,7 @@ public class Reporter extends Document {
 		}
 
 		chapter.add(new Paragraph(
-				"\n                       基本项目                                            检测值                                                 单位 ",
+				"\n                       基本项目                                            统计值                                                 单位 ",
 				baseBoldFontChinese));
 		chapter.add(new Paragraph(
 				"                        --------------------------------------------------------------------------------------------------------",
@@ -159,46 +186,64 @@ public class Reporter extends Document {
 				baseFontChinese));
 	}
 
-	public void publish(String operationInfo) throws DocumentException, ParseException, IOException {
-		this.initial(operationInfo);
+	public void publish(String operationInfo, String schemestr) throws DocumentException,
+			ParseException, IOException {
+		this.initial(operationInfo,schemestr);
 		this.setHeader();
 		this.setCumulantParagraph();
 		this.setPressureParagraph();
+		this.addIllustrate();
 		this.setLiquidParagraph();
+		this.addIllustrate();
 		this.setHeartRateParagraph();
-		this.etBloodPressureParagraph();
+		this.addIllustrate();
+		this.addBloodPressureParagraph();
+		this.addIllustrate();
 		this.addTailer();
 		this.add(chapter);
 		this.close();
 	}
+
+	public InputStream getReporterPdf(String operationInfoStr, String schemestr)
+			throws DocumentException, ParseException, IOException {
+		this.publish(operationInfoStr, schemestr);
+		return new FileInputStream("./" + surgeryNo + operationInfo.patientName
+				+ operationInfo.time + ".pdf");
+	}
 	
-	public InputStream getReporterPdf(String operationInfoStr) throws DocumentException, ParseException, IOException{
-		this.publish(operationInfoStr);
-		return new FileInputStream("./"+surgeryNo+operationInfo.patientName+operationInfo.time+".pdf");
+	private void addIllustrate() {
+		chapter.add(new Paragraph(
+				"\n  诊断描述：\n\n\n\n\n",
+				baseBoldFontChinese));
+		chapter.add(new Paragraph(
+				"              --------------------------------------------------------------------------------------------------------\n",
+				baseFontChinese));
 	}
 
 	@SuppressWarnings("unused")
-	public static JFreeChart createChart(TimeSeriesCollection lineDataset,
-			String title, String ylabel, String xlabel) {
+	public JFreeChart createChart(TimeSeriesCollection lineDataset,
+			String title, String ylabel, String xlabel) throws ParseException {
 		JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(title, // 标题
 				xlabel, // categoryAxisLabel （category轴，横轴，X轴的标签）
 				ylabel, // valueAxisLabel（value轴，纵轴，Y轴的标签）
 				lineDataset,// dataset
 				true, // legend
 				true, // tooltips
-				true); // URLs
-
+				false); // URLs
 		// 配置字体（解决中文乱码的通用方法）
-		Font xfont = new Font("宋体", Font.PLAIN, 10); // X轴
-		Font yfont = new Font("宋体", Font.PLAIN, 10); // Y轴
-		Font kfont = new Font("宋体", Font.PLAIN, 8); // 底部
-		Font titleFont = new Font("隶书", Font.BOLD, 14); // 图片标题
+		LegendTitle legend = (LegendTitle) jfreechart.getSubtitle(0);
+		legend.setPosition(RectangleEdge.RIGHT);
+		Font xfont = new Font("宋体", Font.PLAIN, 20); // X轴
+		Font yfont = new Font("宋体", Font.PLAIN, 20); // Y轴
+		Font kfont = new Font("宋体", Font.PLAIN, 20); // 底部
+		Font titleFont = new Font("隶书", Font.BOLD, 28); // 图片标题
 
-		jfreechart.setBackgroundPaint(Color.white);
+		jfreechart.setBackgroundPaint(new Color(200, 255, 255));
 		XYPlot xyplot = (XYPlot) jfreechart.getPlot(); // 获得 plot：XYPlot！
 
 		xyplot.getDomainAxis().setLabelFont(xfont);
 		xyplot.getRangeAxis().setLabelFont(yfont);
+
 		jfreechart.getLegend().setItemFont(kfont);
 		jfreechart.getTitle().setFont(titleFont);
 
@@ -213,11 +258,11 @@ public class Reporter extends Document {
 		XYLineAndShapeRenderer xylineandshaperenderer = (XYLineAndShapeRenderer) plot
 				.getRenderer();
 		// 设置网格背景颜色
-		plot.setBackgroundPaint(Color.white);
+		plot.setBackgroundPaint(Color.gray);
 		// 设置网格竖线颜色
-		plot.setDomainGridlinePaint(Color.pink);
+		plot.setDomainGridlinePaint(Color.black);
 		// 设置网格横线颜色
-		plot.setRangeGridlinePaint(Color.pink);
+		plot.setRangeGridlinePaint(Color.black);
 		// 设置曲线图与xy轴的距离
 		plot.setAxisOffset(new RectangleInsets(0D, 0D, 0D, 10D));
 		// 设置曲线是否显示数据点
@@ -228,8 +273,39 @@ public class Reporter extends Document {
 		xyitem.setBasePositiveItemLabelPosition(new ItemLabelPosition(
 				ItemLabelAnchor.OUTSIDE12, TextAnchor.BASELINE_LEFT));
 		xyitem.setBaseItemLabelGenerator(new StandardXYItemLabelGenerator());
-		xyitem.setBaseItemLabelFont(new Font("Dialog", 1, 14));
+		xyitem.setBaseItemLabelFont(new Font("Dialog", 1, 28));
 		plot.setRenderer(xyitem);
+		LegendTitle legendTitle = jfreechart.getLegend();
+		legendTitle.setItemFont(new Font("宋体", Font.PLAIN, 20));
+		setAntiAlias(jfreechart);
+
+		for (Scheme scheme : this.schemes) {
+			Date date = dateFormat.parse(scheme.startTime);
+			double millis = new Second(date).getFirstMillisecond();
+			Marker cooling = new ValueMarker(millis, Color.blue,
+					new BasicStroke(2.0f));
+			plot.addDomainMarker(cooling, Layer.BACKGROUND);
+		}
+
+		for (int i = 0; i < schemes.size() - 1; i++) {
+			Date date = dateFormat.parse(schemes.get(i).startTime);
+			double millis1 = new Second(date).getFirstMillisecond();
+			date = dateFormat.parse(schemes.get(i + 1).startTime);
+			double millis2 = new Second(date).getFirstMillisecond();
+			Marker cooling = new IntervalMarker(millis1, millis2);
+			cooling.setLabelOffsetType(LengthAdjustmentType.EXPAND);
+			if (i % 2 == 0)
+				cooling.setPaint(new Color(255, 255, 255));
+			else
+				cooling.setPaint(new Color(120, 255, 255));
+			cooling.setLabel(schemes.get(i).solutionName);
+			cooling.setLabelFont(new Font("宋体", Font.PLAIN, 20));
+
+			cooling.setLabelPaint(Color.blue);
+			cooling.setLabelAnchor(RectangleAnchor.CENTER);
+			cooling.setLabelTextAnchor(TextAnchor.TOP_RIGHT);
+			plot.addDomainMarker(cooling, Layer.BACKGROUND);
+		}
 
 		return jfreechart;
 	}
@@ -254,25 +330,31 @@ public class Reporter extends Document {
 					Double.parseDouble(liquidData.filtration_pump_t));
 
 		}
-		lineDataset.addSeries(timeSeries1);
-		lineDataset.addSeries(timeSeries2);
 		lineDataset.addSeries(timeSeries3);
+		lineDataset.addSeries(timeSeries2);
+		lineDataset.addSeries(timeSeries1);
 		JFreeChart chart = createChart(lineDataset, "液体累积量变化图", "累积量", "时间");
-		BufferedImage bufferedImage = chart.createBufferedImage(400, 200);
+		XYPlot plot = (XYPlot) chart.getPlot();
+		XYDifferenceRenderer r = new XYDifferenceRenderer(Color.blue,
+				Color.red, false);
+		r.setRoundXCoordinates(true);
+		plot.setRenderer(r);
+		plot.setForegroundAlpha(0.5f);
+		
+		BufferedImage bufferedImage = chart.createBufferedImage(900, 300);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
+		img.scalePercent(50);
 		chapter.add(img);
-		chapter.add(new Paragraph(
-				"              --------------------------------------------------------------------------------------------------------\n",
-				baseFontChinese));
 	}
 
 	@SuppressWarnings("deprecation")
 	public void setPressureParagraph() throws ParseException, IOException,
 			DocumentException {
-		List<PressureData> PressureDatas = pressureService.getPressureDatas(surgeryNo);
+		List<PressureData> PressureDatas = pressureService
+				.getPressureDatas(surgeryNo);
 		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		TimeSeriesCollection lineDataset = new TimeSeriesCollection();
 		TimeSeries timeSeries1 = new TimeSeries("采血压", Second.class);
@@ -304,11 +386,12 @@ public class Reporter extends Document {
 		lineDataset.addSeries(timeSeries5);
 		lineDataset.addSeries(timeSeries6);
 		JFreeChart chart = createChart(lineDataset, "压力变化图", "压力值", "时间");
-		BufferedImage bufferedImage = chart.createBufferedImage(400, 200);
+		BufferedImage bufferedImage = chart.createBufferedImage(900, 300);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
+		img.scalePercent(50);
 		chapter.add(img);
 		chapter.add(new Paragraph(
 				"              --------------------------------------------------------------------------------------------------------\n",
@@ -331,19 +414,40 @@ public class Reporter extends Document {
 		}
 		lineDataset.addSeries(timeSeries1);
 		JFreeChart chart = createChart(lineDataset, "心率变化图", "心率值", "时间");
-		BufferedImage bufferedImage = chart.createBufferedImage(400, 200);
+
+		Marker lowThreshold = new ValueMarker(LOWRATETHRESHHODL);
+		lowThreshold.setLabelOffsetType(LengthAdjustmentType.EXPAND);
+		lowThreshold.setPaint(Color.red);
+		lowThreshold.setStroke(new BasicStroke(2.0f));
+		lowThreshold.setLabel(" 下限");
+		lowThreshold.setLabelFont(new Font("宋体", Font.PLAIN, 20));
+		lowThreshold.setLabelPaint(Color.red);
+		lowThreshold.setLabelAnchor(RectangleAnchor.TOP_LEFT);
+		lowThreshold.setLabelTextAnchor(TextAnchor.BOTTOM_LEFT);
+		((XYPlot) chart.getPlot()).addRangeMarker(lowThreshold);
+
+		Marker highThreshold = new ValueMarker(HIGHRATETHRESHHODL);
+		highThreshold.setLabelOffsetType(LengthAdjustmentType.EXPAND);
+		highThreshold.setPaint(Color.red);
+		highThreshold.setStroke(new BasicStroke(2.0f));
+		highThreshold.setLabel("上限");
+		highThreshold.setLabelFont(new Font("宋体", Font.PLAIN, 20));
+		highThreshold.setLabelPaint(Color.red);
+		highThreshold.setLabelAnchor(RectangleAnchor.TOP_LEFT);
+		highThreshold.setLabelTextAnchor(TextAnchor.TOP_LEFT);
+		((XYPlot) chart.getPlot()).addRangeMarker(highThreshold);
+
+		BufferedImage bufferedImage = chart.createBufferedImage(900, 300);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
+		img.scalePercent(50);
 		chapter.add(img);
-		chapter.add(new Paragraph(
-				" \n            --------------------------------------------------------------------------------------------------------\n",
-				baseFontChinese));
 	}
 
 	@SuppressWarnings("deprecation")
-	public void etBloodPressureParagraph() throws ParseException, IOException,
+	public void addBloodPressureParagraph() throws ParseException, IOException,
 			DocumentException {
 		List<BloodPressureData> bloodPressureDatas = bloodPressureService
 				.getBloodPressureDatas(surgeryNo);
@@ -361,33 +465,65 @@ public class Reporter extends Document {
 		}
 		lineDataset.addSeries(timeSeries1);
 		lineDataset.addSeries(timeSeries2);
-		JFreeChart chart = createChart(lineDataset, "血压变化图", "心率值", "时间");
-		BufferedImage bufferedImage = chart.createBufferedImage(400, 200);
+		JFreeChart chart = createChart(lineDataset, "血压变化图", "血压值", "时间");
+
+		Marker lowThreshold = new ValueMarker(LOWBLOODTHRESHHOLD);
+		lowThreshold.setLabelOffsetType(LengthAdjustmentType.EXPAND);
+		lowThreshold.setPaint(Color.red);
+		lowThreshold.setStroke(new BasicStroke(2.0f));
+		lowThreshold.setLabel(" 下限");
+		lowThreshold.setLabelFont(new Font("宋体", Font.PLAIN, 20));
+		lowThreshold.setLabelPaint(Color.red);
+		lowThreshold.setLabelAnchor(RectangleAnchor.TOP_LEFT);
+		lowThreshold.setLabelTextAnchor(TextAnchor.BOTTOM_LEFT);
+		((XYPlot) chart.getPlot()).addRangeMarker(lowThreshold);
+
+		Marker highThreshold = new ValueMarker(HIGHBLOODTHRESHHODL);
+		highThreshold.setLabelOffsetType(LengthAdjustmentType.EXPAND);
+		highThreshold.setPaint(Color.red);
+		highThreshold.setStroke(new BasicStroke(2.0f));
+		highThreshold.setLabel("上限");
+		highThreshold.setLabelFont(new Font("宋体", Font.PLAIN, 20));
+		highThreshold.setLabelPaint(Color.red);
+		highThreshold.setLabelAnchor(RectangleAnchor.TOP_LEFT);
+		highThreshold.setLabelTextAnchor(TextAnchor.TOP_LEFT);
+		((XYPlot) chart.getPlot()).addRangeMarker(highThreshold);
+		BufferedImage bufferedImage = chart.createBufferedImage(900, 300);
+		
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
+		img.scalePercent(50);
 		chapter.add(img);
-		chapter.add(new Paragraph(
-				"             --------------------------------------------------------------------------------------------------------\n",
-				baseFontChinese));
 	}
 
 	public void addTailer() {
 		chapter.add(new Paragraph(
-				"                                                                                                                            操作人 :                    审核人 :        ",
+				"                                                                                                                            操作人 :                    审核人 :        \n",
+				baseFontChinese));
+		chapter.add(new Paragraph(
+				"\n      备注： ",
 				baseFontChinese));
 	}
 
 	@SuppressWarnings("unused")
 	public static void main(String[] args) throws DocumentException,
 			IOException, ParseException {
-		//Reporter report = new Reporter(new OperationInfo("张三", "男", "20","治疗方法一", "王医生", "1", "", "2015-03-08"));
-		//report.publish();
-		OperationInfo op = new OperationInfo("张三", "男", "20","治疗方法一", "王医生", "1", "", "2015-03-08");
+		// Reporter report = new Reporter(new OperationInfo("张三", "男",
+		// "20","治疗方法一", "王医生", "1", "", "2015-03-08"));
+		// report.publish();
+		OperationInfo op = new OperationInfo("张三", "男", "20", "治疗方法一", "王医生",
+				"1", "", "2015-03-08");
 		Gson gson = new Gson();
 		String json = gson.toJson(op);
 		OperationInfo operation = gson.fromJson(json, OperationInfo.class);
+		List<Scheme> schemes = new ArrayList<Scheme>();
+		schemes.add(new Scheme("阶段1", "2015-03-04 11:39:20"));
+		schemes.add(new Scheme("阶段2", "2015-03-04 11:39:30"));
+		schemes.add(new Scheme("stop ", "2015-03-04 11:39:38"));
+		String jsonSchemes = gson.toJson(schemes);
+		List<Scheme> schemes2 = gson.fromJson(jsonSchemes, new TypeToken<List<Scheme>>(){}.getType());
 		System.out.println("sss");
 	}
 }
