@@ -55,9 +55,11 @@ import com.artificialliver.service.LiquidService;
 import com.artificialliver.service.PressureService;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
+import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Chapter;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
 import com.itextpdf.text.Image;
 import com.itextpdf.text.PageSize;
 import com.itextpdf.text.Paragraph;
@@ -151,16 +153,31 @@ public class Reporter extends Document {
 		chapter.add(baseInformation);
 	}
 
-	public void setCumulantParagraph() throws DocumentException {
+	public void setCumulantParagraph() throws DocumentException, IOException {
 		Cumulant cumulant = cumulantService.getCumulant(surgeryNo);
 
 		PdfPTable t = new PdfPTable(3);
-		t.setSpacingBefore(5);
-		t.setSpacingAfter(25);
-		t.setTotalWidth(400);
-		t.setLockedWidth(true);
-		t.getDefaultCell().setBorder(0);
+		int headerwidths[] = { 2, 2, 1 }; // percentage
+		t.setSpacingBefore(10f);
+		t.setSpacingAfter(10f);
+		t.setWidths(headerwidths);
+		t.setWidthPercentage(40);
+		t.setHorizontalAlignment(Element.ALIGN_LEFT);
 
+		t.getDefaultCell().setPadding(3);
+		t.getDefaultCell().setBorderWidth(10);
+		t.getDefaultCell().setHorizontalAlignment(Element.ALIGN_CENTER);
+
+		String[] colName = new String[] { "基本项目", "测量值", "单位" };
+		for (String col : colName) {
+			PdfPCell pCell = new PdfPCell(new Phrase(col, baseTableFontChinese));
+			pCell.setBorderWidth(2);
+			pCell.setBorderColor(BaseColor.LIGHT_GRAY);
+			pCell.setGrayFill(0.95f);
+			pCell.setPadding(5);
+			t.addCell(pCell);
+		}
+		t.setHeaderRows(1);
 		String[] strings = new String[] { "实际治疗时间", cumulant.cumulative_time,
 				"Min", "血液循环量", cumulant.blood_pump_t, "L", "分离量",
 				cumulant.separation_pump_t, "L", "透析液量",
@@ -168,21 +185,30 @@ public class Reporter extends Document {
 				"L", "滤过量", cumulant.filtration_pump_t, "L", "循环量",
 				cumulant.circulating_pump_t, "L", "肝素量",
 				cumulant.heparin_pump_t, "ml" };
+		t.getDefaultCell().setBorderWidth(1);
 		for (String string : strings) {
 			PdfPCell c = new PdfPCell(new Phrase(string, baseTableFontChinese));
-			c.setBorder(0);
+			c.setBorderWidth(1);
+			c.setBorderColor(BaseColor.LIGHT_GRAY);
+			c.setGrayFill(0.95f);
 			t.addCell(c);
 		}
+		chapter.add(t);
+		
+		JFreeChart chart = PieChart3D.createChart(PieChart3D
+				.createDataset());
+		
+		BufferedImage bufferedImage = chart.createBufferedImage(400, 250);
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ImageIO.write(bufferedImage, "png", out);
+		byte[] bytes = out.toByteArray();
+		Image img = Image.getInstance(bytes);
+		img.scalePercent(50);
+		img.setAbsolutePosition(300, 571);
+		chapter.add(img);
 
 		chapter.add(new Paragraph(
-				"\n                       基本项目                                            统计值                                                 单位 ",
-				baseBoldFontChinese));
-		chapter.add(new Paragraph(
-				"                        --------------------------------------------------------------------------------------------------------",
-				baseTableFontChinese));
-		chapter.add(t);
-		chapter.add(new Paragraph(
-				"              --------------------------------------------------------------------------------------------------------\n",
+				"------------------------------------------------------------------------------------------------------------------------\n",
 				baseFontChinese));
 	}
 
@@ -213,11 +239,21 @@ public class Reporter extends Document {
 	
 	private void addIllustrate() {
 		chapter.add(new Paragraph(
-				"\n  诊断描述：\n\n\n\n\n",
-				baseBoldFontChinese));
-		chapter.add(new Paragraph(
-				"              --------------------------------------------------------------------------------------------------------\n",
+				"------------------------------------------------------------------------------------------------------------------------\n",
 				baseFontChinese));
+		chapter.add(new Paragraph("\n  诊断描述：\n\n", baseBoldFontChinese));
+		PdfPCell pCell = new PdfPCell(new Phrase("具体诊断说明", baseTableFontChinese));
+		pCell.setBorderWidth(2);
+		pCell.setBorderColor(BaseColor.RED);
+		pCell.setGrayFill(0.95f);
+		pCell.setPadding(5);
+		pCell.setFixedHeight(90);
+		PdfPTable table=new PdfPTable(1);
+		table.addCell(pCell);
+		table.setTotalWidth(445);
+		table.setLockedWidth(true);
+		table.setHorizontalAlignment(Element.ALIGN_LEFT);
+		chapter.add(table);
 	}
 
 	@SuppressWarnings("unused")
@@ -231,6 +267,7 @@ public class Reporter extends Document {
 				true, // tooltips
 				false); // URLs
 		// 配置字体（解决中文乱码的通用方法）
+		jfreechart.getTitle().setVisible(false);
 		LegendTitle legend = (LegendTitle) jfreechart.getSubtitle(0);
 		legend.setPosition(RectangleEdge.RIGHT);
 		Font xfont = new Font("宋体", Font.PLAIN, 20); // X轴
@@ -341,12 +378,13 @@ public class Reporter extends Document {
 		plot.setRenderer(r);
 		plot.setForegroundAlpha(0.5f);
 		
-		BufferedImage bufferedImage = chart.createBufferedImage(900, 300);
+		BufferedImage bufferedImage = chart.createBufferedImage(900, 500);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
-		img.scalePercent(50);
+		img.scalePercent(25);
+		img.setAbsolutePosition(280, 423);
 		chapter.add(img);
 	}
 
@@ -386,16 +424,13 @@ public class Reporter extends Document {
 		lineDataset.addSeries(timeSeries5);
 		lineDataset.addSeries(timeSeries6);
 		JFreeChart chart = createChart(lineDataset, "压力变化图", "压力值", "时间");
-		BufferedImage bufferedImage = chart.createBufferedImage(900, 300);
+		BufferedImage bufferedImage = chart.createBufferedImage(900, 500);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
-		img.scalePercent(50);
+		img.scalePercent(25);
 		chapter.add(img);
-		chapter.add(new Paragraph(
-				"              --------------------------------------------------------------------------------------------------------\n",
-				baseFontChinese));
 	}
 
 	@SuppressWarnings("deprecation")
@@ -437,12 +472,12 @@ public class Reporter extends Document {
 		highThreshold.setLabelTextAnchor(TextAnchor.TOP_LEFT);
 		((XYPlot) chart.getPlot()).addRangeMarker(highThreshold);
 
-		BufferedImage bufferedImage = chart.createBufferedImage(900, 300);
+		BufferedImage bufferedImage = chart.createBufferedImage(900, 500);
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
-		img.scalePercent(50);
+		img.scalePercent(25);
 		chapter.add(img);
 	}
 
@@ -494,7 +529,8 @@ public class Reporter extends Document {
 		ImageIO.write(bufferedImage, "png", out);
 		byte[] bytes = out.toByteArray();
 		Image img = Image.getInstance(bytes);
-		img.scalePercent(50);
+		img.scalePercent(25);
+		img.setAbsolutePosition(280, 291);
 		chapter.add(img);
 	}
 
