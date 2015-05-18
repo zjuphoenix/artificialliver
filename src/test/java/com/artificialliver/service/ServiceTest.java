@@ -2,8 +2,11 @@ package com.artificialliver.service;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +29,7 @@ public class ServiceTest {
 	public void setUp() throws Exception {
 		client = new HttpClient();
 	}
+	
 
 	@Test
 	public void test() {
@@ -100,7 +104,8 @@ public class ServiceTest {
 			if (statCode == HttpStatus.SC_OK) {
 				InputStream response = postMethod.getResponseBodyAsStream();
 				try {
-					File file=new File("C://Users/wuhaitao/Desktop/report.pdf");
+					String filename = URLDecoder.decode(ServiceTest.class.getResource("/").getPath()+"report.pdf", "UTF-8");
+					File file=new File(filename);
 					file.createNewFile();
 					OutputStream os = new FileOutputStream(file);
 					int bytesRead = 0;
