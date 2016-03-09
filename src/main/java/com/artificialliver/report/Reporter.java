@@ -15,8 +15,9 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import javax.annotation.Resource;
+
 import javax.imageio.ImageIO;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.DateAxis;
@@ -40,7 +41,7 @@ import org.jfree.ui.RectangleAnchor;
 import org.jfree.ui.RectangleEdge;
 import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
-import org.springframework.stereotype.Component;
+
 import com.artificialliver.model.BloodPressureData;
 import com.artificialliver.model.Cumulant;
 import com.artificialliver.model.HeartRateData;
@@ -70,7 +71,6 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
-@Component
 public class Reporter extends Document {
 	public static final double HIGHBLOODTHRESHHODL = 2;
 	public static final double LOWBLOODTHRESHHOLD = 1;
@@ -87,23 +87,27 @@ public class Reporter extends Document {
 	OperationInfo operationInfo;
 	List<Scheme> schemes;
 
-	@Resource
 	private CumulantService cumulantService;
-	@Resource
+
 	private BloodPressureService bloodPressureService;
-	@Resource
+
 	private HeartRateService heartRateService;
-	@Resource
+
 	private LiquidService liquidService;
-	@Resource
+
 	private PressureService pressureService;
 
 	public static void setAntiAlias(JFreeChart chart) {
 		chart.setTextAntiAlias(false);
 
 	}
-	public Reporter() {
+	public Reporter(CumulantService cumulantService,BloodPressureService bloodPressureService,HeartRateService heartRateService, LiquidService liquidService,PressureService pressureService) {
 		super(PageSize.A4, 50, 50, 50, 50);
+		this.cumulantService=cumulantService;
+		this.bloodPressureService=bloodPressureService;
+		this.heartRateService=heartRateService;
+		this.liquidService=liquidService;
+		this.pressureService=pressureService;
 	}
 
 	public void initial(String operationInfoStr, String schemestr) throws DocumentException,
@@ -218,11 +222,8 @@ public class Reporter extends Document {
 		this.setHeader();
 		this.setCumulantParagraph();
 		this.setPressureParagraph();
-		this.addIllustrate();
 		this.setLiquidParagraph();
-		this.addIllustrate();
 		this.setHeartRateParagraph();
-		this.addIllustrate();
 		this.addBloodPressureParagraph();
 		this.addIllustrate();
 		this.addTailer();

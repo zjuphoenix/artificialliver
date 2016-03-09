@@ -13,8 +13,17 @@ import com.itextpdf.text.DocumentException;
 
 @Service
 public class ReporterService {
+
 	@Resource
-	private Reporter reporter;
+	private CumulantService cumulantService;
+	@Resource
+	private BloodPressureService bloodPressureService;
+	@Resource
+	private HeartRateService heartRateService;
+	@Resource
+	private LiquidService liquidService;
+	@Resource
+	private PressureService pressureService;
 	
 	public ReporterService() {
 		super();
@@ -24,6 +33,6 @@ public class ReporterService {
 
 
 	public InputStream getReporterPdf(String operationInfoStr, String schemestr) throws DocumentException, ParseException, IOException{
-		return reporter.getReporterPdf(operationInfoStr, schemestr);
+		return new Reporter(cumulantService,bloodPressureService,heartRateService,liquidService,pressureService).getReporterPdf(operationInfoStr, schemestr);
 	}
 }
