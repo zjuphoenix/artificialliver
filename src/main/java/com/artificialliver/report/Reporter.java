@@ -360,10 +360,10 @@ public class Reporter extends Document {
 			Date date = dateFormat.parse(liquidData.time_stamp);
 			Second second = new Second(date);
 			timeSeries1
-					.add(second, Double.parseDouble(liquidData.blood_pump_t));
+					.addOrUpdate(second, Double.parseDouble(liquidData.blood_pump_t));
 			timeSeries2
-					.add(second, Double.parseDouble(liquidData.tripe_pump_t));
-			timeSeries3.add(second,
+					.addOrUpdate(second, Double.parseDouble(liquidData.tripe_pump_t));
+			timeSeries3.addOrUpdate(second,
 					Double.parseDouble(liquidData.filtration_pump_t));
 
 		}
@@ -404,17 +404,17 @@ public class Reporter extends Document {
 		for (PressureData pressureData : PressureDatas) {
 			Date date = dateFormat.parse(pressureData.time_stamp);
 			Second second = new Second(date);
-			timeSeries1.add(second,
+			timeSeries1.addOrUpdate(second,
 					Double.parseDouble(pressureData.in_blood_pressure));
-			timeSeries2.add(second,
+			timeSeries2.addOrUpdate(second,
 					Double.parseDouble(pressureData.plasma_inlet_pressure));
-			timeSeries3.add(second,
+			timeSeries3.addOrUpdate(second,
 					Double.parseDouble(pressureData.arterial_pressure));
-			timeSeries4.add(second,
+			timeSeries4.addOrUpdate(second,
 					Double.parseDouble(pressureData.venous_pressure));
-			timeSeries5.add(second,
+			timeSeries5.addOrUpdate(second,
 					Double.parseDouble(pressureData.plasma_pressure));
-			timeSeries6.add(second,
+			timeSeries6.addOrUpdate(second,
 					Double.parseDouble(pressureData.transmembrane_pressure));
 		}
 		lineDataset.addSeries(timeSeries1);
@@ -444,7 +444,7 @@ public class Reporter extends Document {
 		for (HeartRateData heartRateData : heartRateDatas) {
 			Date date = dateFormat.parse(heartRateData.time_stamp);
 			Second second = new Second(date);
-			timeSeries1.add(second,
+			timeSeries1.addOrUpdate(second,
 					Double.parseDouble(heartRateData.heart_rate));
 		}
 		lineDataset.addSeries(timeSeries1);
@@ -493,9 +493,9 @@ public class Reporter extends Document {
 		for (BloodPressureData bloodPressureData : bloodPressureDatas) {
 			Date date = dateFormat.parse(bloodPressureData.time_stamp);
 			Second second = new Second(date);
-			timeSeries1.add(second,
+			timeSeries1.addOrUpdate(second,
 					Double.parseDouble(bloodPressureData.diastolic_pressure));
-			timeSeries2.add(second,
+			timeSeries2.addOrUpdate(second,
 					Double.parseDouble(bloodPressureData.systolic_pressure));
 		}
 		lineDataset.addSeries(timeSeries1);

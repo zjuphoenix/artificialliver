@@ -63,8 +63,8 @@ public class ServiceTest {
 		PostMethod postMethod = new PostMethod(url);
 		postMethod.setRequestHeader("Content-Type",
 				"application/x-www-form-urlencoded;charset=UTF-8");
-		NameValuePair[] param = { new NameValuePair("surgery_no", "123"),
-				new NameValuePair("time_stamp", "2015-03-07") };
+		NameValuePair[] param = { new NameValuePair("surgery_no", "201411180198"),
+				new NameValuePair("time_stamp", "2015-07-10 15:25:08") };
 		postMethod.setRequestBody(param);
 		try {
 			int statCode = client.executeMethod(postMethod);
@@ -90,12 +90,12 @@ public class ServiceTest {
 		postMethod.setRequestHeader("Content-Type",
 				"application/x-www-form-urlencoded;charset=UTF-8");
 		Gson gson = new Gson();
-		String json = gson.toJson(new OperationInfo("张三", "男", "20", "治疗方法一",
-				"王医生", "123", "", "2015-03-07 00:00:00"));
+		String json = gson.toJson(new OperationInfo("张三", "男", "20",
+				"方法一", "王医生", "201411180198", "2015-07-10 15:25:08", "120"));
 		List<Scheme> schemes = new ArrayList<Scheme>();
-		schemes.add(new Scheme("阶段1", "2015-03-04 11:39:20"));
-		schemes.add(new Scheme("阶段2", "2015-03-04 11:39:30"));
-		schemes.add(new Scheme("stop ", "2015-03-04 11:39:38"));
+		schemes.add(new Scheme("阶段1", "2015-07-10 15:25:08"));
+		schemes.add(new Scheme("阶段2", "2015-07-10 15:39:30 "));
+		schemes.add(new Scheme("stop ", "2015-07-10 16:01:57"));
 		String jsonSchemes = gson.toJson(schemes);
 		NameValuePair[] param = { new NameValuePair("operationInfo", json), new NameValuePair("schemes", jsonSchemes)};
 		postMethod.setRequestBody(param);
